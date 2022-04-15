@@ -12,6 +12,7 @@ using System.Linq;
 using Amazon.DynamoDBv2;
 using Amazon;
 using System.Collections.Generic;
+using compartilhado.Enum;
 
 // Assembly attribute to enable the Lambda function's JSON input to be converted into a .NET class.
 [assembly: LambdaSerializer(typeof(Amazon.Lambda.Serialization.SystemTextJson.DefaultLambdaJsonSerializer))]
@@ -32,12 +33,16 @@ namespace Coletor
                     try
                     {
                         await ProcessarValorDoPedido(pedido);
+                        await AmazonUtil.EnviarParaFila(EnumFilasSQS.pedido, pedido);
+                        context.Logger.LogLine($"Sucesso na coleta do pedido: '{pedido.Id}'");
+
                     }
                     catch (Exception ex)
                     {
+                        context.Logger.LogLine($"Erro: '{ex.Message}'");
                         pedido.JustificativaDeCancelamento = ex.Message;
                         pedido.Cancelado = true;
-                        //Adicionar à fila de falha
+                        await AmazonUtil.EnviarParaFila(EnumFilasSNS.falha, pedido);
                     }
 
                     await pedido.SalvarAsync();
@@ -68,9 +73,9 @@ namespace Coletor
             var client = new AmazonDynamoDBClient(RegionEndpoint.SAEast1);
             var request = new QueryRequest
             {
-                TableName = "estoque",
+                TableName = "tab_estoque",
                 KeyConditionExpression = "Id = :v_id",
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue> { { "v_id", new AttributeValue { S = id } } }
+                ExpressionAttributeValues = new Dictionary<string, AttributeValue> { { ":v_id", new AttributeValue { S = id } } }
             };
 
             var response = await client.QueryAsync(request);

@@ -3,13 +3,17 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.DataModel;
 using Amazon.DynamoDBv2.DocumentModel;
 using Amazon.DynamoDBv2.Model;
+using Amazon.SQS;
+using Amazon.SQS.Model;
+using compartilhado.Enum;
 using Model;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Compartilhado
 {
-    public static class Amazon
+    public static class AmazonUtil
     {
         public static async Task SalvarAsync(this Pedido pedido)
         {
@@ -25,6 +29,25 @@ namespace Compartilhado
 
             var doc = Document.FromAttributeMap(dictionary);
             return context.FromDocument<T>(doc);
+        }
+
+        public static async Task EnviarParaFila(EnumFilasSQS fila, Pedido pedido)
+        {
+            var json = JsonConvert.SerializeObject(pedido);
+            var client = new AmazonSQSClient(RegionEndpoint.SAEast1);
+            var request = new SendMessageRequest
+            {
+                QueueUrl = $"https://localhost/{fila}",
+                MessageBody = json
+            };
+
+            await client.SendMessageAsync(request);
+        }
+
+        public static async Task EnviarParaFila(EnumFilasSNS fila, Pedido pedido)
+        {
+            // Implementar
+            await Task.CompletedTask;
         }
     }
 }

@@ -1,15 +1,11 @@
 ﻿using Amazon.DynamoDBv2.DataModel;
+using Newtonsoft.Json.Converters;
 using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace Model
 {
-    public enum StatusDoPedido
-    {
-        Coletado,
-        Pago,
-        Faturado
-    }
 
     [DynamoDBTable("tab_pedidos")]
     public class Pedido
@@ -28,6 +24,7 @@ namespace Model
 
         public string JustificativaDeCancelamento { get; set; }
 
+        [JsonConverter(typeof(StringEnumConverter))]
         public StatusDoPedido Status { get; set; }
 
         public bool Cancelado { get; set; }
