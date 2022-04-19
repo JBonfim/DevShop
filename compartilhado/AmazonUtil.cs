@@ -37,7 +37,7 @@ namespace Compartilhado
             var client = new AmazonSQSClient(RegionEndpoint.SAEast1);
             var request = new SendMessageRequest
             {
-                QueueUrl = $"https://localhost/{fila}",
+                QueueUrl = $"https:/amazon/{fila}",
                 MessageBody = json
             };
 
